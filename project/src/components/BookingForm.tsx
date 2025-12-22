@@ -49,7 +49,7 @@ export default function BookingForm() {
           client_email: data.email,
           client_phone: data.phone,
         }));
-      } catch (error) {
+      } catch {
         setProfileError('Please login again to book an appointment.');
       }
     };
@@ -81,7 +81,7 @@ export default function BookingForm() {
         if (formData.appointment_time && !times.includes(formData.appointment_time)) {
           setFormData((prev) => ({ ...prev, appointment_time: '' }));
         }
-      } catch (error) {
+      } catch {
         setAvailableTimes([]);
       }
     };
@@ -101,7 +101,7 @@ export default function BookingForm() {
         },
       ]);
 
-      if (error) throw error;
+      if (error) throw error; 
 
       setSubmitted(true);
       setFormData({

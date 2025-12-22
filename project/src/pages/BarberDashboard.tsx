@@ -12,6 +12,7 @@ export default function BarberDashboard() {
   const [reschedule, setReschedule] = useState<{ id: string; date: string; time: string } | null>(
     null
   );
+  const [rescheduleTimes, setRescheduleTimes] = useState<string[]>([]);
 
   const formatTime = (time: string) => {
     if (!time) return '';
@@ -23,6 +24,15 @@ export default function BarberDashboard() {
     const hour12 = hour % 12 === 0 ? 12 : hour % 12;
     return `${String(hour12).padStart(2, '0')}:${String(minute).padStart(2, '0')} ${period}`;
   };
+
+  const filterBusinessHours = (times: string[]) =>
+    times.filter((time) => {
+      const [hour, minute] = time.split(':').map(Number);
+      if (Number.isNaN(hour) || Number.isNaN(minute)) return false;
+      if (hour < 9 || hour > 20) return false;
+      if (hour === 20 && minute > 0) return false;
+      return true;
+    });
 
   const loadAppointments = async () => {
     const data = (await apiFetch('/api/appointments?sort=asc')) as { data: AppointmentItem[] };
@@ -43,6 +53,26 @@ export default function BarberDashboard() {
 
     load();
   }, []);
+
+  useEffect(() => {
+    const loadRescheduleTimes = async () => {
+      if (!reschedule?.date) {
+        setRescheduleTimes([]);
+        return;
+      }
+
+      try {
+        const data = (await apiFetch(
+          `/api/availability?date=${reschedule.date}&excludeId=${reschedule.id}`
+        )) as { availableTimes: string[] };
+        setRescheduleTimes(filterBusinessHours(data.availableTimes || []));
+      } catch (err) {
+        setRescheduleTimes([]);
+      }
+    };
+
+    loadRescheduleTimes();
+  }, [reschedule?.date, reschedule?.id]);
 
   const updateStatus = async (id: string, action: string) => {
     setError('');
@@ -195,11 +225,8 @@ export default function BarberDashboard() {
                         required
                         className="px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:outline-none"
                       />
-                      <input
-                        type="time"
+                      <select
                         value={reschedule.time}
-                        min="09:00"
-                        max="20:00"
                         onChange={(event) =>
                           setReschedule((prev) =>
                             prev ? { ...prev, time: event.target.value } : prev
@@ -207,7 +234,20 @@ export default function BarberDashboard() {
                         }
                         required
                         className="px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:outline-none"
-                      />
+                      >
+                        <option value="">Select time</option>
+                        {rescheduleTimes.length === 0 && reschedule.date ? (
+                          <option value="" disabled>
+                            No slots available
+                          </option>
+                        ) : (
+                          rescheduleTimes.map((time) => (
+                            <option key={time} value={time}>
+                              {time}
+                            </option>
+                          ))
+                        )}
+                      </select>
                       <button
                         type="submit"
                         className="bg-amber-500 text-slate-900 px-4 py-2 rounded-lg font-semibold hover:bg-amber-400"
