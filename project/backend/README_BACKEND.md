@@ -116,3 +116,14 @@ POST /rest/v1/appointments
 - 403 Forbidden: wrong role
 - 409 Time slot already booked
 - 500 Server error
+
+
+
+# Create barber 
+
+SECRET="c890fac32ff5475882e70c05e5c9eaecd55158906ea84d7d98409b3d123bb7ce"
+curl -X POST http://localhost:4000/api/auth/create-barber \
+  -H "Content-Type: application/json" \
+  -H "x-setup-secret: $SECRET" \
+  -d '{"name":"Barber","email":"barber@gmail.com","phone":"+38344123456","password":"barber123"}'
+
