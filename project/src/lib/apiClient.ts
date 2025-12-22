@@ -17,7 +17,15 @@ export const getRole = () => {
   }
 };
 
-const baseUrl = import.meta.env.VITE_SUPABASE_URL;
+const getBaseUrl = () => {
+  const envUrl = import.meta.env.VITE_SUPABASE_URL;
+  if (envUrl) return envUrl;
+  if (typeof window === 'undefined') return '';
+  const { protocol, hostname } = window.location;
+  return `${protocol}//${hostname}:4000`;
+};
+
+const baseUrl = getBaseUrl();
 
 export const apiFetch = async (path: string, options: RequestInit = {}) => {
   const headers = new Headers(options.headers || {});

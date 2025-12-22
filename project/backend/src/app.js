@@ -1,3 +1,4 @@
+import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -14,6 +15,8 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { requireAuth } from './middleware/auth.js';
 import { me } from './controllers/authController.js';
 
+dotenv.config();
+
 const app = express();
 
 const originList = (process.env.FRONTEND_ORIGIN || 'http://localhost:5173')
@@ -25,6 +28,10 @@ app.use(helmet());
 app.use(
   cors({
     origin: (requestOrigin, callback) => {
+      if (originList.includes('*')) {
+        callback(null, true);
+        return;
+      }
       if (!requestOrigin || originList.includes(requestOrigin)) {
         callback(null, true);
         return;
